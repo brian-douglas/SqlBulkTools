@@ -19,6 +19,6 @@
     <PackageProjectUrl>https://github.com/ersensurekler/SqlBulkTools</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/ersensurekler/SqlBulkTools/blob/master/LICENSE</PackageLicenseUrl>
     <PackageTags>SQL BULK BULKINSERT BULKUPDATE BULKINSERTORUPDATE</PackageTags>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 </Project>
