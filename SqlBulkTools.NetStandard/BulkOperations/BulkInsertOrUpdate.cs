@@ -314,6 +314,7 @@ namespace SqlBulkTools
             BulkOperationsHelper.DoColumnMappings(_customColumnMappings, _columns, _matchTargetOn);
             BulkOperationsHelper.DoColumnMappings(_customColumnMappings, _deletePredicates);
             BulkOperationsHelper.DoColumnMappings(_customColumnMappings, _updatePredicates);
+            BulkOperationsHelper.DoColumnMappings(_customColumnMappings, _excludeFromUpdate);
 
             if (connection.State != ConnectionState.Open)
                 await connection.OpenAsync();
