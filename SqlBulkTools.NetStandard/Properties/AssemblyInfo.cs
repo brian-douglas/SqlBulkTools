@@ -6,10 +6,10 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("SqlBulkTools")]
-[assembly: AssemblyDescription("https://github.com/brian-douglas/SqlBulkTools")]
+[assembly: AssemblyDescription("https://github.com/ersensurekler/SqlBulkTools")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("B3.SqlBulkTools")]
+[assembly: AssemblyProduct("SqlBulkTools")]
 [assembly: AssemblyCopyright("Copyright ©  2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

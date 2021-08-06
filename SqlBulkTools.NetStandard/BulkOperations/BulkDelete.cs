@@ -130,12 +130,12 @@ namespace SqlBulkTools
             return this;
         }
 
-        public int Commit(IDbConnection connection, SqlTransaction transaction)
+        public int Commit(IDbConnection connection)
         {
             if (connection is SqlConnection == false)
                 throw new ArgumentException("Parameter must be a SqlConnection instance");
 
-            return Commit((SqlConnection)connection, transaction);
+            return Commit((SqlConnection)connection);
         }
 
         /// <summary>
@@ -143,9 +143,8 @@ namespace SqlBulkTools
         /// successful.
         /// </summary>
         /// <param name="connection"></param>
-        /// <param name="transaction"></param>
         /// <returns></returns>
-        public int Commit(SqlConnection connection, SqlTransaction transaction)
+        public int Commit(SqlConnection connection)
         {
             int affectedRecords = 0;
             if (!_list.Any())
@@ -169,7 +168,6 @@ namespace SqlBulkTools
 
             SqlCommand command = connection.CreateCommand();
             command.Connection = connection;
-            command.Transaction = transaction;
             command.CommandTimeout = _sqlTimeout;
 
             _nullableColumnDic = BulkOperationsHelper.GetNullableColumnDic(dtCols);
@@ -178,9 +176,10 @@ namespace SqlBulkTools
             command.CommandText = BulkOperationsHelper.BuildCreateTempTable(_columns, dtCols, _outputIdentity);
             command.ExecuteNonQuery();
 
-            BulkOperationsHelper.InsertToTmpTable(connection, dt, _bulkCopySettings, transaction);
+            BulkOperationsHelper.InsertToTmpTable(connection, dt, _bulkCopySettings);
 
-            string comm = BulkOperationsHelper.GetOutputCreateTableCmd(_outputIdentity, Constants.TempOutputTableName, OperationType.InsertOrUpdate, _identityColumn);
+            string comm = BulkOperationsHelper.GetOutputCreateTableCmd(_outputIdentity, Constants.TempOutputTableName,
+            OperationType.InsertOrUpdate, _identityColumn);
 
             if (!string.IsNullOrWhiteSpace(comm))
             {
@@ -212,9 +211,8 @@ namespace SqlBulkTools
         /// successful.
         /// </summary>
         /// <param name="connection"></param>
-        /// <param name="transaction"></param>
         /// <returns></returns>
-        public async Task<int> CommitAsync(SqlConnection connection, SqlTransaction transaction)
+        public async Task<int> CommitAsync(SqlConnection connection)
         {
             int affectedRecords = 0;
             if (!_list.Any())
@@ -238,7 +236,6 @@ namespace SqlBulkTools
 
             SqlCommand command = connection.CreateCommand();
             command.Connection = connection;
-            command.Transaction = transaction;
             command.CommandTimeout = _sqlTimeout;
 
             _nullableColumnDic = BulkOperationsHelper.GetNullableColumnDic(dtCols);
@@ -247,9 +244,10 @@ namespace SqlBulkTools
             command.CommandText = BulkOperationsHelper.BuildCreateTempTable(_columns, dtCols, _outputIdentity);
             await command.ExecuteNonQueryAsync();
 
-            BulkOperationsHelper.InsertToTmpTable(connection, dt, _bulkCopySettings, transaction);
+            BulkOperationsHelper.InsertToTmpTable(connection, dt, _bulkCopySettings);
 
-            string comm = BulkOperationsHelper.GetOutputCreateTableCmd(_outputIdentity, Constants.TempOutputTableName, OperationType.InsertOrUpdate, _identityColumn);
+            string comm = BulkOperationsHelper.GetOutputCreateTableCmd(_outputIdentity, Constants.TempOutputTableName,
+            OperationType.InsertOrUpdate, _identityColumn);
 
             if (!string.IsNullOrWhiteSpace(comm))
             {
@@ -270,7 +268,7 @@ namespace SqlBulkTools
 
             if (_outputIdentity == ColumnDirectionType.InputOutput)
             {
-                await BulkOperationsHelper.LoadFromTmpOutputTableAsync(command, _identityColumn, _outputIdentityDic, OperationType.Delete, _list);
+                BulkOperationsHelper.LoadFromTmpOutputTable(command, _identityColumn, _outputIdentityDic, OperationType.Delete, _list);
             }
 
             return affectedRecords;

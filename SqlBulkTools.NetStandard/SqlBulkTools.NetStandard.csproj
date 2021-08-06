@@ -15,12 +15,12 @@
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Authors>liningit, tiagorosendo, zek99, gtaylor44, ersensurekler</Authors>
-    <RepositoryUrl>https://github.com/brian-douglas/SqlBulkTools</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/brian-douglas/SqlBulkTools</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ersensurekler/SqlBulkTools</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/ersensurekler/SqlBulkTools</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/ersensurekler/SqlBulkTools/blob/master/LICENSE</PackageLicenseUrl>
     <PackageTags>SQL BULK BULKINSERT BULKUPDATE BULKINSERTORUPDATE</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageId>B3.SqlBulkTools</PackageId>
+    <PackageId>SqlBulkTools</PackageId>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 </Project>
