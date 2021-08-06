@@ -184,12 +184,12 @@ namespace SqlBulkTools
             return this;
         }
 
-        public int Commit(IDbConnection connection)
+        public int Commit(IDbConnection connection, SqlTransaction transaction)
         {
             if (connection is SqlConnection == false)
                 throw new ArgumentException("Parameter must be a SqlConnection instance");
 
-            return Commit((SqlConnection)connection);
+            return Commit((SqlConnection)connection, transaction);
         }
 
         /// <summary>
@@ -197,10 +197,11 @@ namespace SqlBulkTools
         /// successful.
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
         /// <exception cref="SqlBulkToolsException"></exception>
         /// <exception cref="IdentityException"></exception>
-        public int Commit(SqlConnection connection)
+        public int Commit(SqlConnection connection, SqlTransaction transaction)
         {
             int affectedRows = 0;
             if (!_list.Any())
@@ -233,6 +234,7 @@ namespace SqlBulkTools
                 SqlCommand command = connection.CreateCommand();
 
                 command.Connection = connection;
+                command.Transaction = transaction;
                 command.CommandTimeout = _sqlTimeout;
 
                 _nullableColumnDic = BulkOperationsHelper.GetNullableColumnDic(dtCols);
@@ -241,10 +243,9 @@ namespace SqlBulkTools
                 command.CommandText = BulkOperationsHelper.BuildCreateTempTable(_columns, dtCols, _outputIdentity);
                 command.ExecuteNonQuery();
 
-                BulkOperationsHelper.InsertToTmpTable(connection, dt, _bulkCopySettings);
+                BulkOperationsHelper.InsertToTmpTable(connection, dt, _bulkCopySettings, transaction);
 
-                string comm = BulkOperationsHelper.GetOutputCreateTableCmd(_outputIdentity, Constants.TempOutputTableName,
-                OperationType.InsertOrUpdate, _identityColumn);
+                string comm = BulkOperationsHelper.GetOutputCreateTableCmd(_outputIdentity, Constants.TempOutputTableName, OperationType.InsertOrUpdate, _identityColumn);
 
                 if (!string.IsNullOrWhiteSpace(comm))
                 {
@@ -291,10 +292,11 @@ namespace SqlBulkTools
         /// successful.
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
         /// <exception cref="SqlBulkToolsException"></exception>
         /// <exception cref="IdentityException"></exception>
-        public async Task<int> CommitAsync(SqlConnection connection)
+        public async Task<int> CommitAsync(SqlConnection connection, SqlTransaction transaction)
         {
             int affectedRows = 0;
             if (!_list.Any())
@@ -327,6 +329,7 @@ namespace SqlBulkTools
                 SqlCommand command = connection.CreateCommand();
 
                 command.Connection = connection;
+                command.Transaction = transaction;
                 command.CommandTimeout = _sqlTimeout;
 
                 _nullableColumnDic = BulkOperationsHelper.GetNullableColumnDic(dtCols);
@@ -335,7 +338,7 @@ namespace SqlBulkTools
                 command.CommandText = BulkOperationsHelper.BuildCreateTempTable(_columns, dtCols, _outputIdentity);
                 await command.ExecuteNonQueryAsync();
 
-                BulkOperationsHelper.InsertToTmpTable(connection, dt, _bulkCopySettings);
+                BulkOperationsHelper.InsertToTmpTable(connection, dt, _bulkCopySettings, transaction);
 
                 string comm = BulkOperationsHelper.GetOutputCreateTableCmd(_outputIdentity, Constants.TempOutputTableName,
                 OperationType.InsertOrUpdate, _identityColumn);

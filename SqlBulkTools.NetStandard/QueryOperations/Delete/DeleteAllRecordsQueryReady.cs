@@ -39,12 +39,12 @@ namespace SqlBulkTools
             return this;
         }
 
-        public int Commit(IDbConnection connection)
+        public int Commit(IDbConnection connection, SqlTransaction transaction)
         {
             if (connection is SqlConnection == false)
                 throw new ArgumentException("Parameter must be a SqlConnection instance");
 
-            return Commit((SqlConnection)connection);
+            return Commit((SqlConnection)connection, transaction);
         }
 
         /// <summary>
@@ -52,14 +52,16 @@ namespace SqlBulkTools
         /// successful.
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        public int Commit(SqlConnection connection)
+        public int Commit(SqlConnection connection, SqlTransaction transaction)
         {
             if (connection.State == ConnectionState.Closed)
                 connection.Open();
 
             SqlCommand command = connection.CreateCommand();
             command.Connection = connection;
+            command.Transaction = transaction;
 
             command.CommandText = GetQuery(connection);
 
@@ -73,15 +75,17 @@ namespace SqlBulkTools
         /// successful.
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
-        public async Task<int> CommitAsync(SqlConnection connection)
+        public async Task<int> CommitAsync(SqlConnection connection, SqlTransaction transaction)
         {
             if (connection.State == ConnectionState.Closed)
                 await connection.OpenAsync();
 
             SqlCommand command = connection.CreateCommand();
             command.Connection = connection;
-
+            command.Transaction = transaction;
+            
             command.CommandText = command.CommandText = GetQuery(connection);
 
             int affectedRows = await command.ExecuteNonQueryAsync();

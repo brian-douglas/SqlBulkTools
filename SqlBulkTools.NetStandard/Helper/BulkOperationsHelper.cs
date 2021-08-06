@@ -62,8 +62,7 @@ namespace SqlBulkTools
             return propertyName;
         }
 
-        internal static string BuildCreateTempTable(HashSet<string> columns, DataTable schema,
-            ColumnDirectionType outputIdentity)
+        internal static string BuildCreateTempTable(HashSet<string> columns, DataTable schema, ColumnDirectionType outputIdentity)
         {
             var actualColumns = new Dictionary<string, string>();
             var actualColumnsMaxCharLength = new Dictionary<string, string>();
@@ -1006,9 +1005,9 @@ namespace SqlBulkTools
             return dtCols;
         }
 
-        internal static void InsertToTmpTable(SqlConnection conn, DataTable dt, BulkCopySettings bulkCopySettings)
+        internal static void InsertToTmpTable(SqlConnection conn, DataTable dt, BulkCopySettings bulkCopySettings, SqlTransaction transaction)
         {
-            using (var bulkcopy = new SqlBulkCopy(conn, bulkCopySettings.SqlBulkCopyOptions, null))
+            using (var bulkcopy = new SqlBulkCopy(conn, bulkCopySettings.SqlBulkCopyOptions, transaction))
             {
                 bulkcopy.DestinationTableName = Constants.TempTableName;
 
@@ -1020,9 +1019,7 @@ namespace SqlBulkTools
             }
         }
 
-        internal static void LoadFromTmpOutputTable<T>(SqlCommand command, string identityColumn,
-            Dictionary<int, T> outputIdentityDic,
-            OperationType operationType, IEnumerable<T> list)
+        internal static void LoadFromTmpOutputTable<T>(SqlCommand command, string identityColumn, Dictionary<int, T> outputIdentityDic, OperationType operationType, IEnumerable<T> list)
         {
             if (!typeof(T).GetProperty(identityColumn).CanWrite)
                 throw new SqlBulkToolsException(GetPrivateSetterExceptionMessage(identityColumn));
@@ -1128,12 +1125,9 @@ namespace SqlBulkTools
             return $"No setter method available on property '{columnName}'. Could not write output back to property.";
         }
 
-        internal static string GetInsertIntoStagingTableCmd(SqlConnection conn, string schema,
-            string tableName,
-            HashSet<string> columns, string identityColumn, ColumnDirectionType outputIdentity)
+        internal static string GetInsertIntoStagingTableCmd(SqlConnection conn, string schema, string tableName, HashSet<string> columns, string identityColumn, ColumnDirectionType outputIdentity)
         {
-            var fullTableName = GetFullQualifyingTableName(conn.Database, schema,
-                tableName);
+            var fullTableName = GetFullQualifyingTableName(conn.Database, schema, tableName);
 
             var comm =
                 GetOutputCreateTableCmd(outputIdentity, Constants.TempOutputTableName,
