@@ -15,7 +15,7 @@ namespace SqlBulkTools
     ///
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class BulkInsert<T> : AbstractOperation<T>, ITransaction
+    public class BulkInsert<T> : AbstractOperation<T>, ITransactionWithMetadata
     {
         /// <summary>
         ///
@@ -130,6 +130,71 @@ namespace SqlBulkTools
                     command.ExecuteNonQuery();
 
                     BulkOperationsHelper.InsertToTmpTable(connection, dt, _bulkCopySettings);
+
+                    command.CommandText = BulkOperationsHelper.GetInsertIntoStagingTableCmd(connection, _schema, _tableName,
+                        _columns, _identityColumn, _outputIdentity);
+                    command.ExecuteNonQuery();
+
+                    BulkOperationsHelper.LoadFromTmpOutputTable(command, _identityColumn, _outputIdentityDic, OperationType.Insert, _list);
+                }
+                else
+                    bulkcopy.WriteToServer(dt);
+
+                if (_disableAllIndexes)
+                {
+                    command.CommandText = BulkOperationsHelper.GetIndexManagementCmd(Constants.Rebuild, _tableName,
+                        _schema, connection);
+                    command.ExecuteNonQuery();
+                }
+
+                bulkcopy.Close();
+
+                affectedRows = dt.Rows.Count;
+                return affectedRows;
+            }
+        }
+
+        public int CommitWithPrecomputedMetadata(SqlTransaction transaction, DataTable dtColumns)
+        {
+            int affectedRows = 0;
+            var connection = transaction.Connection;
+
+            if (!_list.Any())
+            {
+                return affectedRows;
+            }
+
+            DataTable dt = BulkOperationsHelper.CreateDataTable<T>(_propertyInfoList, _columns, _customColumnMappings, _ordinalDic, _matchTargetOn, _outputIdentity);
+            dt = BulkOperationsHelper.ConvertListToDataTable(_propertyInfoList, dt, _list, _columns, _ordinalDic);
+
+            // Must be after ToDataTable is called.
+            BulkOperationsHelper.DoColumnMappings(_customColumnMappings, _columns, _matchTargetOn);
+            
+            //Bulk insert into temp table
+            using (SqlBulkCopy bulkcopy = new SqlBulkCopy(connection, _bulkCopySettings.SqlBulkCopyOptions, null))
+            {
+                bulkcopy.DestinationTableName = BulkOperationsHelper.GetFullQualifyingTableName(connection.Database, _schema, _tableName);
+                BulkOperationsHelper.MapColumns(bulkcopy, _columns, _customColumnMappings);
+
+                BulkOperationsHelper.SetSqlBulkCopySettings(bulkcopy, _bulkCopySettings);
+
+                SqlCommand command = connection.CreateCommand();
+                command.Connection = connection;
+
+                if (_disableAllIndexes)
+                {
+                    command.CommandText = BulkOperationsHelper.GetIndexManagementCmd(Constants.Disable, _tableName,
+                        _schema, connection);
+                    command.ExecuteNonQuery();
+                }
+
+                // If InputOutput identity is selected, must use staging table.
+                if (_outputIdentity == ColumnDirectionType.InputOutput && dtColumns != null)
+                {
+                    command.CommandText = BulkOperationsHelper.BuildCreateTempTable(_columns, dtColumns, _outputIdentity);
+                    command.ExecuteNonQuery();
+
+                    BulkOperationsHelper.InsertToTmpTable(transaction, dt, _bulkCopySettings);
 
                     command.CommandText = BulkOperationsHelper.GetInsertIntoStagingTableCmd(connection, _schema, _tableName,
                         _columns, _identityColumn, _outputIdentity);

@@ -10,7 +10,7 @@ namespace SqlBulkTools
         int Commit(IDbConnection connection);
 
         int Commit(SqlConnection connection);
-
+        
         Task<int> CommitAsync(SqlConnection connection);
     }
 }

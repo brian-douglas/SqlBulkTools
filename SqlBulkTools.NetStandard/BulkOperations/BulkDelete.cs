@@ -206,6 +206,11 @@ namespace SqlBulkTools
             return affectedRecords;
         }
 
+        public int CommitWithPrecomputedMetadata(SqlTransaction transaction, DataTable dtColumns)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Commits a transaction to database asynchronously. A valid setup must exist for the operation to be
         /// successful.

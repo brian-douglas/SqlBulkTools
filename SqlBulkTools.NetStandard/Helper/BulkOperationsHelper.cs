@@ -987,7 +987,7 @@ namespace SqlBulkTools
         /// <param name="schema"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        internal static DataTable GetDatabaseSchema(SqlConnection conn, string schema, string tableName)
+        public static DataTable GetDatabaseSchema(SqlConnection conn, string schema, string tableName)
         {
             var restrictions = new string[4];
             restrictions[0] = conn.Database;
@@ -1009,6 +1009,19 @@ namespace SqlBulkTools
         internal static void InsertToTmpTable(SqlConnection conn, DataTable dt, BulkCopySettings bulkCopySettings)
         {
             using (var bulkcopy = new SqlBulkCopy(conn, bulkCopySettings.SqlBulkCopyOptions, null))
+            {
+                bulkcopy.DestinationTableName = Constants.TempTableName;
+
+                SetSqlBulkCopySettings(bulkcopy, bulkCopySettings);
+
+                foreach (var column in dt.Columns) bulkcopy.ColumnMappings.Add(column.ToString(), column.ToString());
+
+                bulkcopy.WriteToServer(dt);
+            }
+        }
+        internal static void InsertToTmpTable(SqlTransaction transaction, DataTable dt, BulkCopySettings bulkCopySettings)
+        {
+            using (var bulkcopy = new SqlBulkCopy(transaction.Connection, bulkCopySettings.SqlBulkCopyOptions, transaction))
             {
                 bulkcopy.DestinationTableName = Constants.TempTableName;
 

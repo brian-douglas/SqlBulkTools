@@ -15,7 +15,7 @@ namespace SqlBulkTools
     ///
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class BulkUpdate<T> : AbstractOperation<T>, ITransaction
+    public class BulkUpdate<T> : AbstractOperation<T>, ITransactionWithMetadata
     {
         private Dictionary<string, bool> _nullableColumnDic;
 
@@ -302,6 +302,81 @@ namespace SqlBulkTools
                 }
 
                 affectedRows = await command.ExecuteNonQueryAsync();
+
+                if (_outputIdentity == ColumnDirectionType.InputOutput)
+                {
+                    BulkOperationsHelper.LoadFromTmpOutputTable(command, _identityColumn, _outputIdentityDic, OperationType.InsertOrUpdate, _list);
+                }
+
+                return affectedRows;
+            }
+            catch (SqlException e)
+            {
+                for (int i = 0; i < e.Errors.Count; i++)
+                {
+                    // Error 8102 is identity error.
+                    if (e.Errors[i].Number == 8102)
+                    {
+                        // Expensive call but neccessary to inform user of an important configuration setup.
+                        throw new IdentityException(e.Errors[i].Message);
+                    }
+                }
+                throw;
+            }
+        }
+
+        public int CommitWithPrecomputedMetadata(SqlTransaction transaction, DataTable dtColumns)
+        {
+            int affectedRows = 0;
+            if (!_list.Any())
+            {
+                return affectedRows;
+            }
+
+            base.MatchTargetCheck();
+
+            DataTable dt = BulkOperationsHelper.CreateDataTable<T>(_propertyInfoList, _columns, _customColumnMappings, _ordinalDic, _matchTargetOn, _outputIdentity);
+            dt = BulkOperationsHelper.ConvertListToDataTable(_propertyInfoList, dt, _list, _columns, _ordinalDic, _outputIdentityDic);
+
+            // Must be after ToDataTable is called.
+            BulkOperationsHelper.DoColumnMappings(_customColumnMappings, _columns, _matchTargetOn);
+            BulkOperationsHelper.DoColumnMappings(_customColumnMappings, _updatePredicates);
+            
+            try
+            {
+                var connection = transaction.Connection;
+                SqlCommand command = connection.CreateCommand();
+                command.Connection = connection;
+                command.CommandTimeout = _sqlTimeout;
+
+                _nullableColumnDic = BulkOperationsHelper.GetNullableColumnDic(dtColumns);
+
+                //Creating temp table on database
+                command.CommandText = BulkOperationsHelper.BuildCreateTempTable(_columns, dtColumns, _outputIdentity);
+                command.ExecuteNonQuery();
+
+                //Bulk insert into temp table
+                BulkOperationsHelper.InsertToTmpTable(transaction, dt, _bulkCopySettings);
+
+                string comm = BulkOperationsHelper.GetOutputCreateTableCmd(_outputIdentity, Constants.TempOutputTableName,
+                OperationType.InsertOrUpdate, _identityColumn);
+
+                if (!string.IsNullOrWhiteSpace(comm))
+                {
+                    command.CommandText = comm;
+                    command.ExecuteNonQuery();
+                }
+
+                comm = GetCommand(connection);
+
+                command.CommandText = comm;
+
+                if (_parameters.Count > 0)
+                {
+                    command.Parameters.AddRange(_parameters.ToArray());
+                }
+
+                affectedRows = command.ExecuteNonQuery();
 
                 if (_outputIdentity == ColumnDirectionType.InputOutput)
                 {
