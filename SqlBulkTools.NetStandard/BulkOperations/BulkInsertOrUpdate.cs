@@ -326,8 +326,7 @@ namespace SqlBulkTools
 
                 BulkOperationsHelper.InsertToTmpTable(transaction, dt, _bulkCopySettings);
 
-                string comm = BulkOperationsHelper.GetOutputCreateTableCmd(_outputIdentity, Constants.TempOutputTableName,
-                OperationType.InsertOrUpdate, _identityColumn);
+                string comm = BulkOperationsHelper.GetOutputCreateTableCmd(_outputIdentity, Constants.TempOutputTableName, OperationType.InsertOrUpdate, _identityColumn);
 
                 if (!string.IsNullOrWhiteSpace(comm))
                 {

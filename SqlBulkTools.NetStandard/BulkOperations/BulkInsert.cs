@@ -171,7 +171,7 @@ namespace SqlBulkTools
             BulkOperationsHelper.DoColumnMappings(_customColumnMappings, _columns, _matchTargetOn);
             
             //Bulk insert into temp table
-            using (SqlBulkCopy bulkcopy = new SqlBulkCopy(connection, _bulkCopySettings.SqlBulkCopyOptions, null))
+            using (SqlBulkCopy bulkcopy = new SqlBulkCopy(connection, _bulkCopySettings.SqlBulkCopyOptions, transaction))
             {
                 bulkcopy.DestinationTableName = BulkOperationsHelper.GetFullQualifyingTableName(connection.Database, _schema, _tableName);
                 BulkOperationsHelper.MapColumns(bulkcopy, _columns, _customColumnMappings);
@@ -179,12 +179,12 @@ namespace SqlBulkTools
                 BulkOperationsHelper.SetSqlBulkCopySettings(bulkcopy, _bulkCopySettings);
 
                 SqlCommand command = connection.CreateCommand();
+                command.Transaction = transaction;
                 command.Connection = connection;
 
                 if (_disableAllIndexes)
                 {
-                    command.CommandText = BulkOperationsHelper.GetIndexManagementCmd(Constants.Disable, _tableName,
-                        _schema, connection);
+                    command.CommandText = BulkOperationsHelper.GetIndexManagementCmd(Constants.Disable, _tableName, _schema, connection);
                     command.ExecuteNonQuery();
                 }
 

@@ -347,6 +347,7 @@ namespace SqlBulkTools
                 var connection = transaction.Connection;
                 SqlCommand command = connection.CreateCommand();
                 command.Connection = connection;
+                command.Transaction = transaction;
                 command.CommandTimeout = _sqlTimeout;
 
                 _nullableColumnDic = BulkOperationsHelper.GetNullableColumnDic(dtColumns);
