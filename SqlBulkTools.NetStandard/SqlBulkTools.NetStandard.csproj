@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>7.2</LangVersion>
+    <Version>1.0.1</Version>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DebugSymbols>true</DebugSymbols>
@@ -15,12 +16,12 @@
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Authors>liningit, tiagorosendo, zek99, gtaylor44, ersensurekler</Authors>
-    <RepositoryUrl>https://github.com/ersensurekler/SqlBulkTools</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/ersensurekler/SqlBulkTools</PackageProjectUrl>
+    <RepositoryUrl></RepositoryUrl>
+    <PackageProjectUrl></PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/ersensurekler/SqlBulkTools/blob/master/LICENSE</PackageLicenseUrl>
     <PackageTags>SQL BULK BULKINSERT BULKUPDATE BULKINSERTORUPDATE</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageId>SqlBulkTools</PackageId>
+    <PackageId>B3.SqlBulkTools</PackageId>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 </Project>
